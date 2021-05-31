@@ -39,7 +39,7 @@ import "github.com/juliaqiuxy/wfcache"
 wfcache.Create(
   basicAdapter.Create(5 * time.Minute),
   bigCacheAdapter.Create(2 * time.Hour),
-  dynamodbAdapter.Create(dynamodbClient, "my-cache-table", 3, 3, 24 * time.Hour),
+  dynamodbAdapter.Create(dynamodbClient, "my-cache-table", 24 * time.Hour),
 )
 ```
 
@@ -68,7 +68,7 @@ wfcache.CreateWithHooks(
   onFinishStorageOp,
   basicAdapter.Create(5 * time.Minute),
   bigCacheAdapter.Create(2 * time.Hour),
-  dynamodbAdapter.Create(dynamodbClient, "my-cache-table", 3, 3, 24 * time.Hour),
+  dynamodbAdapter.Create(dynamodbClient, "my-cache-table", 24 * time.Hour),
 )
 ```
 

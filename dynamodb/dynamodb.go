@@ -27,7 +27,7 @@ type DynamoDbStorage struct {
 const maxReadOps = 100
 const maxWriteOps = 25
 
-func prepareDynamoDbTableIfNotExists(dynamodbClient dynamodbiface.DynamoDBAPI, tableName string, readCapacityUnits int64, writeCapacityUnits int64) error {
+func prepareDynamoDbTableIfNotExists(dynamodbClient dynamodbiface.DynamoDBAPI, tableName string) error {
 	_, err := dynamodbClient.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
@@ -42,8 +42,8 @@ func prepareDynamoDbTableIfNotExists(dynamodbClient dynamodbiface.DynamoDBAPI, t
 			},
 		},
 		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-			ReadCapacityUnits:  aws.Int64(readCapacityUnits),
-			WriteCapacityUnits: aws.Int64(writeCapacityUnits),
+			ReadCapacityUnits:  aws.Int64(3),
+			WriteCapacityUnits: aws.Int64(3),
 		},
 		TableName: aws.String(tableName),
 	})
@@ -70,7 +70,7 @@ func prepareDynamoDbTableIfNotExists(dynamodbClient dynamodbiface.DynamoDBAPI, t
 	return nil
 }
 
-func Create(dynamodbClient dynamodbiface.DynamoDBAPI, tableName string, readCapacityUnits int64, writeCapacityUnits int64, ttl time.Duration) wfcache.StorageMaker {
+func Create(dynamodbClient dynamodbiface.DynamoDBAPI, tableName string, ttl time.Duration) wfcache.StorageMaker {
 	return func() (wfcache.Storage, error) {
 		if dynamodbClient == nil {
 			return nil, errors.New("dynamodb requires a client")
@@ -99,8 +99,6 @@ func Create(dynamodbClient dynamodbiface.DynamoDBAPI, tableName string, readCapa
 					err = prepareDynamoDbTableIfNotExists(
 						dynamodbClient,
 						tableName,
-						readCapacityUnits,
-						writeCapacityUnits,
 					)
 					if err != nil {
 						return nil, err
