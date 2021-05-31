@@ -27,13 +27,13 @@ type Storage interface {
 
 type StorageMaker func() (Storage, error)
 
-type StartOperation func() interface{}
-type FinishOperation func(interface{})
+type StartStorageOp func() interface{}
+type FinishStorageOp func(interface{})
 type Cache struct {
 	storages []Storage
 
-	startOperation  StartOperation
-	finishOperation FinishOperation
+	startOperation  StartStorageOp
+	finishOperation FinishStorageOp
 }
 
 var (
@@ -41,12 +41,20 @@ var (
 	ErrPartiallyFulfilled = errors.New("look up only partially fulfilled")
 )
 
-func Create(startOperation StartOperation, finishOperation FinishOperation, maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
+func Create(maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
+	return CreateWithHooks(
+		func() interface{} { return nil },
+		func(i interface{}) {},
+		maker,
+		otherMakers...)
+}
+
+func CreateWithHooks(sop StartStorageOp, fop FinishStorageOp, maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
 	makers := append([]StorageMaker{maker}, otherMakers...)
 
 	c := Cache{
-		startOperation:  startOperation,
-		finishOperation: finishOperation,
+		startOperation:  sop,
+		finishOperation: fop,
 	}
 	c.storages = make([]Storage, len(makers))
 	for i, makeStorage := range makers {

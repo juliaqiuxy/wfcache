@@ -37,10 +37,31 @@ $ go get -u github.com/juliaqiuxy/wfcache
 import "github.com/juliaqiuxy/wfcache"
 
 wfcache.Create(
-  onStartOperation,
-  onFinishOperation,
-  basicAdapter.Create(time.Minute),
-  bigCacheAdapter.Create(time.Hour),
+  basicAdapter.Create(5 * time.Minute),
+  bigCacheAdapter.Create(2 * time.Hour),
+  dynamodbAdapter.Create(dynamodbClient, "my-cache-table", 3, 3, 24 * time.Hour),
+)
+```
+
+## Usage with hooks
+
+You can configure wfcache to notify you when each storage operation starts and finishes. This is useful when you want to do performance logging, tracing etc.
+
+```go
+import "github.com/juliaqiuxy/wfcache"
+
+func onStartStorageOp() interface{} {
+  return nil
+}
+
+func onFinishStorageOp() {
+}
+
+wfcache.CreateWithHooks(
+  onStartStorageOp,
+  onFinishStorageOp,
+  basicAdapter.Create(5 * time.Minute),
+  bigCacheAdapter.Create(2 * time.Hour),
   dynamodbAdapter.Create(dynamodbClient, "my-cache-table", 3, 3, 24 * time.Hour),
 )
 ```
