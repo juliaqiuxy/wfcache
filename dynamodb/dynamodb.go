@@ -164,8 +164,7 @@ process:
 	err := withRetry(ctx, func() error {
 		var err error
 
-		// TODO use BatchWriteItemWithContext
-		result, err = s.dynamodbClient.BatchGetItem(&dynamodb.BatchGetItemInput{
+		result, err = s.dynamodbClient.BatchGetItemWithContext(ctx, &dynamodb.BatchGetItemInput{
 			RequestItems: map[string]*dynamodb.KeysAndAttributes{
 				s.tableName: {
 					Keys: mapOfAttrKeys,
@@ -271,8 +270,7 @@ process:
 	err := withRetry(ctx, func() error {
 		var err error
 
-		// TODO use BatchWriteItemWithContext
-		result, err = s.dynamodbClient.BatchWriteItem(&dynamodb.BatchWriteItemInput{
+		result, err = s.dynamodbClient.BatchWriteItemWithContext(ctx, &dynamodb.BatchWriteItemInput{
 			RequestItems: map[string][]*dynamodb.WriteRequest{
 				s.tableName: mapOfAttrKeys,
 			},

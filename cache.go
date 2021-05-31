@@ -27,7 +27,7 @@ type Storage interface {
 
 type StorageMaker func() (Storage, error)
 
-type StartStorageOp func() interface{}
+type StartStorageOp func(ctx context.Context, opName string) interface{}
 type FinishStorageOp func(interface{})
 type Cache struct {
 	storages []Storage
@@ -41,10 +41,15 @@ var (
 	ErrPartiallyFulfilled = errors.New("look up only partially fulfilled")
 )
 
+var nosop = func(ctx context.Context, opName string) interface{} {
+	return nil
+}
+var nofop = func(input interface{}) {}
+
 func Create(maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
 	return CreateWithHooks(
-		func() interface{} { return nil },
-		func(i interface{}) {},
+		nosop,
+		nofop,
 		maker,
 		otherMakers...)
 }
@@ -74,7 +79,7 @@ func (c *Cache) Get(key string) (*CacheItem, error) {
 }
 
 func (c *Cache) GetWithContext(ctx context.Context, key string) (*CacheItem, error) {
-	so := c.startOperation()
+	so := c.startOperation(ctx, "Get")
 	defer c.finishOperation(so)
 
 	missingKeyByStorage := map[Storage]string{}
@@ -113,7 +118,7 @@ func (c *Cache) BatchGet(keys []string) ([]*CacheItem, error) {
 func (c *Cache) BatchGetWithContext(ctx context.Context, keys []string) ([]*CacheItem, error) {
 	// TODO(juliaqiuxy) Detect dupes, empty keys, then bail
 
-	so := c.startOperation()
+	so := c.startOperation(ctx, "BatchGet")
 	defer c.finishOperation(so)
 
 	if len(keys) == 0 {
@@ -188,7 +193,7 @@ func (c *Cache) Set(key string, value interface{}) error {
 }
 
 func (c *Cache) SetWithContext(ctx context.Context, key string, value interface{}) error {
-	so := c.startOperation()
+	so := c.startOperation(ctx, "Set")
 	defer c.finishOperation(so)
 
 	v, err := json.Marshal(value)
@@ -211,7 +216,7 @@ func (c *Cache) BatchSet(pairs map[string]interface{}) error {
 }
 
 func (c *Cache) BatchSetWithContext(ctx context.Context, pairs map[string]interface{}) error {
-	so := c.startOperation()
+	so := c.startOperation(ctx, "BatchSet")
 	defer c.finishOperation(so)
 
 	vPairs := map[string][]byte{}
@@ -239,7 +244,7 @@ func (c *Cache) Del(key string) error {
 }
 
 func (c *Cache) DelWithContext(ctx context.Context, key string) error {
-	so := c.startOperation()
+	so := c.startOperation(ctx, "Del")
 	defer c.finishOperation(so)
 
 	for _, storage := range c.storages {

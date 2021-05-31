@@ -48,13 +48,19 @@ wfcache.Create(
 You can configure wfcache to notify you when each storage operation starts and finishes. This is useful when you want to do performance logging, tracing etc.
 
 ```go
-import "github.com/juliaqiuxy/wfcache"
+import (
+  "context"
+  "github.com/juliaqiuxy/wfcache"
+  "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+)
 
-func onStartStorageOp() interface{} {
-  return nil
+func onStartStorageOp(ctx context.Context, opName string) interface{} {
+  span, _ := tracer.StartSpanFromContext(ctx, opName)
+  return span
 }
 
-func onFinishStorageOp() {
+func onFinishStorageOp(span interface{}) {
+  span.(ddtrace.Span).Finish()
 }
 
 wfcache.CreateWithHooks(
