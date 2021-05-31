@@ -356,8 +356,8 @@ func isRetriable(err error) bool {
 			429, // error caused due to too many requests
 			500, // DynamoDB could not process, retry
 			502, // Bad Gateway error should be throttled
-			503, // caused when service is unavailable
-			504: // error occurred due to gateway timeout
+			503, // Caused when service is unavailable
+			504: // Error occurred due to gateway timeout
 			return true
 		}
 	}
@@ -373,8 +373,11 @@ const errDynamodbBatchWrite = `error: %s
 
 DynamoDB rejects the entire batch write operation when one or more of the following is true:
 
-* One or more tables specified in the BatchWriteItem request does not
-exist.
+* There are more than 25 requests in the batch.
+
+* Any individual item in a batch exceeds 400 KB.
+
+* The total request size exceeds 16 MB
 
 * Primary key attributes specified on an item in the request do not match
 those in the corresponding table's primary key schema.
@@ -384,10 +387,4 @@ BatchWriteItem request. For example, you cannot put and delete the same
 item in the same BatchWriteItem request.
 
 * Your request contains at least two items with identical hash and range
-keys (which essentially is two put operations).
-
-* There are more than 25 requests in the batch.
-
-* Any individual item in a batch exceeds 400 KB.
-
-* The total request size exceeds 16 MB`
+keys (which essentially is two put operations)`
