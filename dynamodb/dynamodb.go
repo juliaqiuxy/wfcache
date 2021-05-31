@@ -100,10 +100,11 @@ func Create(dynamodbClient dynamodbiface.DynamoDBAPI, tableName string, ttl time
 						dynamodbClient,
 						tableName,
 					)
-					if err != nil {
-						return nil, err
-					}
 				}
+			}
+
+			if err != nil {
+				return nil, err
 			}
 		}
 

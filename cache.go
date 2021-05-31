@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/thoas/go-funk"
@@ -46,7 +47,7 @@ var nosop = func(ctx context.Context, opName string) interface{} {
 }
 var nofop = func(input interface{}) {}
 
-func Create(maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
+func Create(maker StorageMaker, otherMakers ...StorageMaker) (func() *Cache, error) {
 	return CreateWithHooks(
 		nosop,
 		nofop,
@@ -54,24 +55,37 @@ func Create(maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
 		otherMakers...)
 }
 
-func CreateWithHooks(sop StartStorageOp, fop FinishStorageOp, maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
+func CreateWithHooks(sop StartStorageOp, fop FinishStorageOp, maker StorageMaker, otherMakers ...StorageMaker) (func() *Cache, error) {
 	makers := append([]StorageMaker{maker}, otherMakers...)
+	var c *Cache
+	var once sync.Once
 
-	c := Cache{
-		startOperation:  sop,
-		finishOperation: fop,
-	}
-	c.storages = make([]Storage, len(makers))
-	for i, makeStorage := range makers {
-		storage, err := makeStorage()
-		if err != nil {
-			panic(err)
+	return func() *Cache {
+		if c == nil {
+			once.Do(func() {
+				c = &Cache{
+					startOperation:  sop,
+					finishOperation: fop,
+				}
+
+				c.storages = make([]Storage, len(makers))
+				for i, makeStorage := range makers {
+					storage, err := makeStorage()
+					if err != nil {
+						panic(err)
+					}
+
+					c.storages[i] = storage
+				}
+			})
 		}
 
-		c.storages[i] = storage
-	}
-
-	return &c, nil
+		// TODO(juliaqiuxy) Still a chance will be nil for if a race
+		// condition occurs where the go routine acquiring the lock
+		// takes a while to create `c`. Explore a better API to mitigate
+		// this behavior
+		return c
+	}, nil
 }
 
 func (c *Cache) Get(key string) (*CacheItem, error) {
@@ -133,16 +147,16 @@ func (c *Cache) BatchGetWithContext(ctx context.Context, keys []string) ([]*Cach
 
 	// start waterfall
 	for _, storage := range c.storages {
-		md := storage.BatchGet(ctx, missingKeys)
+		mds := storage.BatchGet(ctx, missingKeys)
 
-		if len(md) != 0 {
-			resolvedKeys := funk.Map(md, func(md *CacheItem) string {
+		if len(mds) != 0 {
+			resolvedKeys := funk.Map(mds, func(md *CacheItem) string {
 				return md.Key
 			}).([]string)
 			mKeys1, mKeys2 := funk.DifferenceString(resolvedKeys, missingKeys)
 			missingKeys = append(mKeys1, mKeys2...)
 
-			cacheItems = append(cacheItems, md...)
+			cacheItems = append(cacheItems, mds...)
 		}
 
 		if len(missingKeys) == 0 {
