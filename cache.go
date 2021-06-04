@@ -75,8 +75,8 @@ func (c *Cache) ensureStorages() error {
 	var err error
 
 	c.once.Do(func() {
-		c.storages = make([]Storage, len(c.makers))
-		for i, makeStorage := range c.makers {
+		c.storages = make([]Storage, 0, len(c.makers))
+		for _, makeStorage := range c.makers {
 			storage, serr := makeStorage()
 			if serr != nil {
 				err = serr
@@ -84,7 +84,7 @@ func (c *Cache) ensureStorages() error {
 				break
 			}
 
-			c.storages[i] = storage
+			c.storages = append(c.storages, storage)
 		}
 	})
 
