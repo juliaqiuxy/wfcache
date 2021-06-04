@@ -88,17 +88,21 @@ func (c *Cache) ensureStorages() error {
 		}
 	})
 
+	if err != nil {
+		return err
+	}
+
 	// Due to how once.Do works, if the first go routine to acquire
 	// the lock takes a while to execute, other go routines trying to
 	// ensure may temporarily get an empty storages slice to work with.
 	// Since this isn't ideal, we ask to retry
 	// TODO(juliaqiuxy) instead of an error, we could wait on once to
 	// finish
-	if len(c.storages) == 0 {
+	if len(c.storages) != len(c.makers) {
 		return errors.New("cache not ready, try again soon")
 	}
 
-	return err
+	return nil
 }
 
 func (c *Cache) Get(key string) (*CacheItem, error) {
