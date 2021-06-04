@@ -33,8 +33,9 @@ type FinishStorageOp func(interface{})
 type Cache struct {
 	storages []Storage
 
-	makers []StorageMaker
-	once   sync.Once
+	makers   []StorageMaker
+	initOnce sync.Once
+	initErr  error
 
 	startOperation  StartStorageOp
 	finishOperation FinishStorageOp
@@ -72,14 +73,12 @@ func CreateWithHooks(sop StartStorageOp, fop FinishStorageOp, maker StorageMaker
 }
 
 func (c *Cache) ensureStorages() error {
-	var err error
-
-	c.once.Do(func() {
+	c.initOnce.Do(func() {
 		c.storages = make([]Storage, 0, len(c.makers))
 		for _, makeStorage := range c.makers {
 			storage, serr := makeStorage()
 			if serr != nil {
-				err = serr
+				c.initErr = serr
 				// TODO(juliaqiuxy) log error
 				break
 			}
@@ -88,8 +87,8 @@ func (c *Cache) ensureStorages() error {
 		}
 	})
 
-	if err != nil {
-		return err
+	if c.initErr != nil {
+		return c.initErr
 	}
 
 	// Due to how once.Do works, if the first go routine to acquire
