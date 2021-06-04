@@ -77,8 +77,9 @@ func (c *Cache) ensureStorages() error {
 	c.once.Do(func() {
 		c.storages = make([]Storage, len(c.makers))
 		for i, makeStorage := range c.makers {
-			storage, err := makeStorage()
-			if err != nil {
+			storage, serr := makeStorage()
+			if serr != nil {
+				err = serr
 				// TODO(juliaqiuxy) log error
 				break
 			}
