@@ -33,6 +33,9 @@ type FinishStorageOp func(interface{})
 type Cache struct {
 	storages []Storage
 
+	makers []StorageMaker
+	once   sync.Once
+
 	startOperation  StartStorageOp
 	finishOperation FinishStorageOp
 }
@@ -47,7 +50,7 @@ var nosop = func(ctx context.Context, opName string) interface{} {
 }
 var nofop = func(input interface{}) {}
 
-func Create(maker StorageMaker, otherMakers ...StorageMaker) (func() *Cache, error) {
+func Create(maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
 	return CreateWithHooks(
 		nosop,
 		nofop,
@@ -55,37 +58,46 @@ func Create(maker StorageMaker, otherMakers ...StorageMaker) (func() *Cache, err
 		otherMakers...)
 }
 
-func CreateWithHooks(sop StartStorageOp, fop FinishStorageOp, maker StorageMaker, otherMakers ...StorageMaker) (func() *Cache, error) {
-	makers := append([]StorageMaker{maker}, otherMakers...)
+func CreateWithHooks(sop StartStorageOp, fop FinishStorageOp, maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
 	var c *Cache
-	var once sync.Once
+	makers := append([]StorageMaker{maker}, otherMakers...)
 
-	return func() *Cache {
-		if c == nil {
-			once.Do(func() {
-				c = &Cache{
-					startOperation:  sop,
-					finishOperation: fop,
-				}
+	c = &Cache{
+		startOperation:  sop,
+		finishOperation: fop,
+		makers:          makers,
+	}
 
-				c.storages = make([]Storage, len(makers))
-				for i, makeStorage := range makers {
-					storage, err := makeStorage()
-					if err != nil {
-						panic(err)
-					}
+	return c, nil
+}
 
-					c.storages[i] = storage
-				}
-			})
+func (c *Cache) ensureStorages() error {
+	var err error
+
+	c.once.Do(func() {
+		c.storages = make([]Storage, len(c.makers))
+		for i, makeStorage := range c.makers {
+			storage, err := makeStorage()
+			if err != nil {
+				// TODO(juliaqiuxy) log error
+				break
+			}
+
+			c.storages[i] = storage
 		}
+	})
 
-		// TODO(juliaqiuxy) Still a chance will be nil for if a race
-		// condition occurs where the go routine acquiring the lock
-		// takes a while to create `c`. Explore a better API to mitigate
-		// this behavior
-		return c
-	}, nil
+	// Due to how once.Do works, if the first go routine to acquire
+	// the lock takes a while to execute, other go routines trying to
+	// ensure may temporarily get an empty storages slice to work with.
+	// Since this isn't ideal, we ask to retry
+	// TODO(juliaqiuxy) instead of an error, we could wait on once to
+	// finish
+	if len(c.storages) == 0 {
+		return errors.New("cache not ready, try again soon")
+	}
+
+	return err
 }
 
 func (c *Cache) Get(key string) (*CacheItem, error) {
@@ -93,6 +105,11 @@ func (c *Cache) Get(key string) (*CacheItem, error) {
 }
 
 func (c *Cache) GetWithContext(ctx context.Context, key string) (*CacheItem, error) {
+	err := c.ensureStorages()
+	if err != nil {
+		return nil, err
+	}
+
 	so := c.startOperation(ctx, "Get")
 	defer c.finishOperation(so)
 
@@ -131,6 +148,11 @@ func (c *Cache) BatchGet(keys []string) ([]*CacheItem, error) {
 
 func (c *Cache) BatchGetWithContext(ctx context.Context, keys []string) ([]*CacheItem, error) {
 	// TODO(juliaqiuxy) Detect dupes, empty keys, then bail
+
+	err := c.ensureStorages()
+	if err != nil {
+		return nil, err
+	}
 
 	so := c.startOperation(ctx, "BatchGet")
 	defer c.finishOperation(so)
@@ -207,6 +229,11 @@ func (c *Cache) Set(key string, value interface{}) error {
 }
 
 func (c *Cache) SetWithContext(ctx context.Context, key string, value interface{}) error {
+	err := c.ensureStorages()
+	if err != nil {
+		return err
+	}
+
 	so := c.startOperation(ctx, "Set")
 	defer c.finishOperation(so)
 
@@ -230,6 +257,11 @@ func (c *Cache) BatchSet(pairs map[string]interface{}) error {
 }
 
 func (c *Cache) BatchSetWithContext(ctx context.Context, pairs map[string]interface{}) error {
+	err := c.ensureStorages()
+	if err != nil {
+		return err
+	}
+
 	so := c.startOperation(ctx, "BatchSet")
 	defer c.finishOperation(so)
 
@@ -258,6 +290,11 @@ func (c *Cache) Del(key string) error {
 }
 
 func (c *Cache) DelWithContext(ctx context.Context, key string) error {
+	err := c.ensureStorages()
+	if err != nil {
+		return err
+	}
+
 	so := c.startOperation(ctx, "Del")
 	defer c.finishOperation(so)
 

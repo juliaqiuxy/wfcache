@@ -36,11 +36,16 @@ $ go get -u github.com/juliaqiuxy/wfcache
 ```go
 import "github.com/juliaqiuxy/wfcache"
 
-wfcache.Create(
+c, err := wfcache.Create(
   basicAdapter.Create(5 * time.Minute),
   bigCacheAdapter.Create(2 * time.Hour),
   dynamodbAdapter.Create(dynamodbClient, "my-cache-table", 24 * time.Hour),
 )
+
+items, err := c.BatchGet(keys)
+if err == wfcache.ErrPartiallyFulfilled {
+  fmt.Println("Somethings are missing")
+}
 ```
 
 ## Usage with hooks
