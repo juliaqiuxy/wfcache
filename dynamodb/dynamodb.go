@@ -235,7 +235,6 @@ func (s *DynamoDbStorage) Set(ctx context.Context, key string, data []byte) erro
 }
 
 func (s *DynamoDbStorage) BatchSet(ctx context.Context, pairs map[string][]byte) error {
-
 	queue := funk.Keys(pairs).([]string)
 
 process:
@@ -339,7 +338,7 @@ func withRetry(ctx aws.Context, fn func() error) (err error) {
 			return err
 		}
 
-		err = aws.SleepWithContext(ctx, wait)
+		err = sleepWithContext(ctx, wait)
 		if err != nil {
 			return err
 		}
@@ -364,6 +363,20 @@ func isRetriable(err error) bool {
 	}
 
 	return false
+}
+
+func sleepWithContext(ctx context.Context, dur time.Duration) error {
+	t := time.NewTimer(dur)
+	defer t.Stop()
+
+	select {
+	case <-t.C:
+		break
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	return nil
 }
 
 const errDynamodbBatchWrite = `error: %s
