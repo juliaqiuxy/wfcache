@@ -108,8 +108,8 @@ it is trivial to extend wfcache by implementing the following adapter interface:
 
 ```go
 type Storage interface {
-  Get(ctx context.Context, key string) *Metadata
-  BatchGet(ctx context.Context, keys []string) []*Metadata
+  Get(ctx context.Context, key string) *CacheItem
+  BatchGet(ctx context.Context, keys []string) []*CacheItem
   Set(ctx context.Context, key string, value []byte) error
   BatchSet(ctx context.Context, pairs map[string][]byte) error
   Del(ctx context.Context, key string) error
