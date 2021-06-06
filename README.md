@@ -12,10 +12,11 @@ wfcache is effective for read-heavy workloads and it can be used both as a side-
 
 | Package | Description | Eviction strategy
 | --- | --- | --- |
-| [Basic](basic/basic.go) | Basic in-memory storage | TTL (enforced on get) |
-| [BigCache](https://github.com/allegro/bigcache) | BigCache | TTL/LRU |
-| [Redis](https://github.com/go-redis/redis) | Redis | TTL/LRU |
 | [DynamoDB](https://docs.aws.amazon.com/sdk-for-go/api/service/dynamodb) | DynamoDB | [TTL](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/howitworks-ttl.html) |
+| [Redis](https://github.com/go-redis/redis) | Redis | TTL/[LRU](https://redis.io/topics/lru-cache) |
+| [BigCache](https://github.com/allegro/bigcache) | Performant on heap storage with [minimal GC](https://github.com/allegro/bigcache#gc-pause-time) | TTL ([enforced on add](https://github.com/allegro/bigcache/issues/123#issuecomment-468902638)) |
+| [GoLRU](https://github.com/manucorporat/golru) | In-memory storage with approximated LRU similar to Redis | TTL/LRU |
+| [Basic](basic/basic.go) | Basic in-memory storage (not recommended) | TTL (enforced on get) |
 
 ## Installation
 
