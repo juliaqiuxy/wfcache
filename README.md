@@ -29,7 +29,12 @@ $ go get github.com/juliaqiuxy/wfcache
 ### Usage
 
 ```go
-import "github.com/juliaqiuxy/wfcache"
+import (
+  "github.com/juliaqiuxy/wfcache"
+  basicAdapter "github.com/juliaqiuxy/wfcache/basic"
+  bigCacheAdapter "github.com/juliaqiuxy/wfcache/bigcache"
+  dynamodbAdapter "github.com/juliaqiuxy/wfcache/dynamodb"
+)
 
 c, err := wfcache.Create(
   basicAdapter.Create(5 * time.Minute),
@@ -52,6 +57,7 @@ import (
   "context"
   "github.com/juliaqiuxy/wfcache"
   "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+  basicAdapter "github.com/juliaqiuxy/wfcache/basic"
 )
 
 func onStartStorageOp(ctx context.Context, opName string) interface{} {
@@ -67,8 +73,6 @@ wfcache.CreateWithHooks(
   onStartStorageOp,
   onFinishStorageOp,
   basicAdapter.Create(5 * time.Minute),
-  bigCacheAdapter.Create(2 * time.Hour),
-  dynamodbAdapter.Create(dynamodbClient, "my-cache-table", 24 * time.Hour),
 )
 ```
 
