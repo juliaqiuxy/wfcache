@@ -1,6 +1,6 @@
 # Waterfall Cache
 
-[![GoDoc](https://godoc.org/github.com/juliaqiuxy/wfcache?status.svg)](https://godoc.org/github.com/juliaqiuxy/wfcache) [![wfcache CI](https://github.com/juliaqiuxy/wfcache/actions/workflows/ci.yml/badge.svg)](https://github.com/juliaqiuxy/wfcache/actions/workflows/ci.yml) [![npm](https://img.shields.io/github/license/juliaqiuxy/wfcache.svg?style=flat-square)](https://github.com/juliaqiuxy/wfcache/blob/master/LICENSE.md)
+[![GoDoc](https://godoc.org/github.com/juliaqiuxy/wfcache?status.svg)](https://godoc.org/github.com/juliaqiuxy/wfcache) [![wfcache CI](https://github.com/juliaqiuxy/wfcache/actions/workflows/ci.yml/badge.svg)](https://github.com/juliaqiuxy/wfcache/actions/workflows/ci.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/juliaqiuxy/wfcache)](https://goreportcard.com/report/github.com/juliaqiuxy/wfcache) [![npm](https://img.shields.io/github/license/juliaqiuxy/wfcache.svg?style=flat-square)](https://github.com/juliaqiuxy/wfcache/blob/master/LICENSE.md)
 
 wfcache is a multi-layered cache with waterfall hit propagation and built-in storage adapters for DynamoDB, Redis, BigCache (in-memory)
 
