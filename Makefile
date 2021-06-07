@@ -3,7 +3,7 @@ dev:
 	docker compose up --abort-on-container-exit
 
 test: fmt
-	go test
+	go test ./...
 
 fmt:
 	go fmt ./...
