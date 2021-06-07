@@ -10,19 +10,19 @@ enable = [
     "errcheck", 
     "goconst", 
     "gocyclo", 
-    "gofumpt"
+    "gofumpt",
     "goimports", 
     "golint", 
     "ineffassign",
     "interfacer", 
     "misspell", 
-    "nakedret", 
-    "unconvert", 
-    "unparam", 
-    "unused", 
+    "nakedret",
+    "unconvert",
+    "unparam",
+    "unused",
     "varcheck",
-    "vet", 
-    "vetshadow", 
+    "vet",
+    "vetshadow",
 ]
 
 [issues]
