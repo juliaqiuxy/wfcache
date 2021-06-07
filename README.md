@@ -26,12 +26,6 @@ To retrieve wfcache, run:
 $ go get github.com/juliaqiuxy/wfcache
 ```
 
-To update to the latest version, run:
-
-```sh
-$ go get -u github.com/juliaqiuxy/wfcache
-```
-
 ### Usage
 
 ```go
@@ -113,5 +107,6 @@ type Storage interface {
   Set(ctx context.Context, key string, value []byte) error
   BatchSet(ctx context.Context, pairs map[string][]byte) error
   Del(ctx context.Context, key string) error
+  BatchDel(ctx context.Context, keys []string) error
 }
 ```
