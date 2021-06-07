@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: wfcache_dynamodb-local
+    ports:
+    - "8000:8000"
+
+  redis:
+    image: redis:latest
+    container_name: wfcache_redis
+    ports:
+    - "6379:6379"
+
+  wfcache:
+    build:
+      context: .
+    container_name: wfcache_test
+    command: go test
+    depends_on:
+      - redis
+      - dynamodb-local

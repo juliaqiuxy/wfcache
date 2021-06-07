@@ -1,0 +1,7 @@
+ARG GOLANG_VERSION=1.16.3
+
+FROM golang:${GOLANG_VERSION}
+
+WORKDIR /wfcache
+
+COPY . .
