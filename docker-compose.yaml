@@ -17,7 +17,7 @@ services:
     build:
       context: .
     container_name: wfcache_test
-    command: go test
+    command: make test
     depends_on:
       - redis
       - dynamodb-local
