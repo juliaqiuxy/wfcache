@@ -21,3 +21,6 @@ services:
     depends_on:
       - redis
       - dynamodb-local
+    environment:
+      REDIS_HOST: "redis:6379"
+      DYNAMODB_HOST: "http://dynamodb-local:8000"

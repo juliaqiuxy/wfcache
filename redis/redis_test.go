@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -19,8 +20,13 @@ var redisInstance *redis.Client
 
 func RedisClient() *redis.Client {
 	var redisDb = func() (*redis.Client, error) {
+		redisHost, ok := os.LookupEnv("REDIS_HOST")
+		if !ok {
+			redisHost = "localhost:6379"
+		}
+
 		db := redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
+			Addr:     redisHost,
 			Password: "",
 		})
 
@@ -57,6 +63,10 @@ func TestRedis(t *testing.T) {
 	c.Set(key, val)
 
 	items, err := c.BatchGet([]string{key})
+
+	if err != nil {
+		t.Errorf("Expected 1 item, got none %s", err)
+	}
 
 	if len(items) != 1 {
 		t.Errorf("Received %v items, expected 1", len(items))

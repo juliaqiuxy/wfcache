@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -22,11 +23,16 @@ var dynamodbInstance *dynamodb.DynamoDB
 
 func DynamodbClient() *dynamodb.DynamoDB {
 	var newLocalDynamodb = func() *dynamodb.DynamoDB {
+		dynamodbHost, ok := os.LookupEnv("DYNAMODB_HOST")
+		if !ok {
+			dynamodbHost = "http://localhost:8000"
+		}
+
 		s, err := session.NewSessionWithOptions(session.Options{
 			Profile: "dynamodb-local",
 			Config: aws.Config{
 				Region:      aws.String("dev-region"),
-				Endpoint:    aws.String("http://localhost:8000"),
+				Endpoint:    aws.String(dynamodbHost),
 				Credentials: credentials.NewStaticCredentials("dev-key-id", "dev-secret-key", ""),
 			},
 		})
@@ -60,15 +66,19 @@ func TestDynamoDb(t *testing.T) {
 
 	items, err := c.BatchGet([]string{key})
 
+	if err != nil {
+		t.Errorf("Expected 1 item, got none %s", err)
+	}
+
 	if len(items) != 1 {
-		t.Errorf("Received %v items, expected 1", len(items))
+		t.Errorf("Expected 1 items, got %v", len(items))
 	}
 
 	var str string
 	json.Unmarshal(items[0].Value, &str)
 
 	if str != val {
-		t.Errorf("Received %v (type %v), expected %v (type %v)", str, reflect.TypeOf(str), val, reflect.TypeOf(val))
+		t.Errorf("Expected %v (type %v), got %v (type %v), ", str, reflect.TypeOf(str), val, reflect.TypeOf(val))
 	}
 
 	fmt.Println(items, str, err)
