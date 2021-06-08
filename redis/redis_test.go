@@ -20,7 +20,7 @@ var redisInstance *redis.Client
 func RedisClient() *redis.Client {
 	var redisDb = func() (*redis.Client, error) {
 		db := redis.NewClient(&redis.Options{
-			Addr:     "redis:6379",
+			Addr:     "localhost:6379",
 			Password: "",
 		})
 
