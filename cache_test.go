@@ -36,5 +36,7 @@ func TestWfCache(t *testing.T) {
 		t.Errorf("Received %v (type %v), expected %v (type %v)", str, reflect.TypeOf(str), val, reflect.TypeOf(val))
 	}
 
-	fmt.Println(items, str, err)
+	storages, _ := c.Storages()
+
+	fmt.Println(items, str, err, storages, len(storages))
 }
