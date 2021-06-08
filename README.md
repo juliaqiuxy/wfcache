@@ -87,7 +87,7 @@ The following steps outline how reads from wfcache work:
 
 If you want to use wfcache as read-through cache, you can implement a [custom adapter](#implementing-custom-adapters) for your source database and configure it as the last storage layer. In this setup, a cache miss only ever happens in intermediate storage layers (which are then primed as your source storage resolves values) but wfcache would always yield data.
 
-When mutating wfcache, key-value pairs are written and removed from all storage layers. To mutate a specific storage layer in isolation, you can keep a refernece to it. However, this is not recommended as the interface is subject to change.
+When mutating wfcache, key-value pairs are written and removed from all storage layers. To mutate a specific storage layer in isolation, you can ask wfcache to provide you with a reference to the underlying slice of storages by calling its `Storages()` method.
 
 ### Cache eviction
 
