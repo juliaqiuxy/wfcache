@@ -29,16 +29,6 @@ jobs:
     steps:
       # Check out the repo
       - uses: actions/checkout@v2
-      # Launch Redis in bg
-      - name: Launch Redis
-        uses: supercharge/redis-github-action@1.2.0
-        with:
-          redis-version: latest
-      # Launch dynamodb local in bg
-      - name: Launch DynamoDB Local
-        uses: rrainn/dynamodb-action@v2.0.0
-        with:
-          port: 8000
       # Install go
       - uses: actions/setup-go@v2
         with:
