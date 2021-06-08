@@ -13,7 +13,7 @@ import (
 )
 
 func TestWfCache(t *testing.T) {
-	c, _ := wfcache.Create(
+	c, _ := wfcache.New(
 		basicAdapter.Create(5*time.Minute),
 		bigCacheAdapter.Create(30*time.Minute),
 	)

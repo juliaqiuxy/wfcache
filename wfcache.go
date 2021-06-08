@@ -47,15 +47,15 @@ var nosop = func(ctx context.Context, opName string) interface{} {
 }
 var nofop = func(input interface{}) {}
 
-func Create(maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
-	return CreateWithHooks(
+func New(maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
+	return NewWithHooks(
 		nosop,
 		nofop,
 		maker,
 		otherMakers...)
 }
 
-func CreateWithHooks(sop StartStorageOp, fop FinishStorageOp, maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
+func NewWithHooks(sop StartStorageOp, fop FinishStorageOp, maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
 	var c *Cache
 	makers := append([]StorageMaker{maker}, otherMakers...)
 

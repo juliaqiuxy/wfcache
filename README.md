@@ -36,7 +36,7 @@ import (
   dynamodb "github.com/juliaqiuxy/wfcache/dynamodb"
 )
 
-c, err := wfcache.Create(
+c, err := wfcache.New(
   basic.Create(5 * time.Minute),
   bigcache.Create(2 * time.Hour),
   dynamodb.Create(dynamodbClient, "my-cache-table", 24 * time.Hour),
@@ -69,7 +69,7 @@ func onFinishStorageOp(span interface{}) {
   span.(ddtrace.Span).Finish()
 }
 
-wfcache.CreateWithHooks(
+wfcache.NewWithHooks(
   onStartStorageOp,
   onFinishStorageOp,
   basic.Create(5 * time.Minute),

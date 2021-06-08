@@ -55,7 +55,7 @@ func DynamodbClient() *dynamodb.DynamoDB {
 func TestDynamoDb(t *testing.T) {
 	dynamodbClient := DynamodbClient()
 
-	c, _ := wfcache.Create(
+	c, _ := wfcache.New(
 		dynamodbAdapter.Create(dynamodbClient, "tests", 6*time.Hour),
 	)
 

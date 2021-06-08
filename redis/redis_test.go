@@ -53,7 +53,7 @@ func RedisClient() *redis.Client {
 func TestRedis(t *testing.T) {
 	r := RedisClient()
 
-	c, _ := wfcache.Create(
+	c, _ := wfcache.New(
 		redisAdapter.Create(r, 6*time.Hour),
 	)
 
