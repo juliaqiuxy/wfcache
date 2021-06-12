@@ -47,6 +47,28 @@ var nosop = func(ctx context.Context, opName string) interface{} {
 }
 var nofop = func(input interface{}) {}
 
+func hasDuplicates(keys []string) bool {
+	encountered := map[string]bool{}
+
+	for i := range keys {
+		if encountered[keys[i]] {
+			return true
+		} else {
+			encountered[keys[i]] = true
+		}
+	}
+	return false
+}
+
+func hasEmptyString(keys []string) bool {
+	for i := range keys {
+		if keys[i] == "" {
+			return true
+		}
+	}
+	return false
+}
+
 func New(maker StorageMaker, otherMakers ...StorageMaker) (*Cache, error) {
 	return NewWithHooks(
 		nosop,
@@ -148,7 +170,13 @@ func (c *Cache) BatchGet(keys []string) ([]*CacheItem, error) {
 }
 
 func (c *Cache) BatchGetWithContext(ctx context.Context, keys []string) ([]*CacheItem, error) {
-	// TODO(juliaqiuxy) Detect dupes, empty keys, then bail
+	if hasDuplicates(keys) {
+		return nil, errors.New("duplicated keys are not allowed")
+	}
+
+	if hasEmptyString(keys) {
+		return nil, errors.New("empty keys are not allowed")
+	}
 
 	storages, err := c.Storages()
 	if err != nil {
